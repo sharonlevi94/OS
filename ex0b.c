@@ -24,6 +24,9 @@ int terminate(FILE *);
 void read_data(struct Sentences*,FILE*);
 int get_sentences_number(FILE *);
 void terminate_all();
+struct Sentences build_new_struct(struct Sentences*);
+int count_strs_in_arr(const char* , int**, int*,int*);
+int count_strs_in_struct(struct Sentences*,int**,int*);
 /************MAIN*****************/
 int main()
 {
@@ -72,16 +75,19 @@ int terminate(FILE *p2file)
         printf("can't open file\n");
         exit(1);
     }
+    if(p2file!=NULL)
+    {
+    printf("open file success\n");
+    }
     return 0;
 }
 //------------------------------------------------------------------
 void read_data(struct Sentences* user_struct,FILE* input)
 {
-	int c;
+	int endl;
 	int i;
-	char* line ;
 	user_struct->_num_of_sentences=get_sentences_number(input);
-	c=fgetc(input);
+	endl=fgetc(input);
 
 	user_struct->_data = (char*) malloc (sizeof(user_struct->_num_of_sentences));
 
@@ -92,16 +98,15 @@ void read_data(struct Sentences* user_struct,FILE* input)
 
 	for(i=0;i<user_struct->_num_of_sentences ; i++)
 	{
-		user_struct->_data[i] = (char) mallloc (sizeof(LEN_OF_SENTENCE));
+		user_struct->_data[i] = malloc (sizeof(LEN_OF_SENTENCE));
 		if(user_struct->_data[i]==NULL)
 		{
 			terminate_all();
 		}
-		fscanf(input,"%s",user_struct->_data[i]);
-
+		fscanf(input,"%[^\n]",user_struct->_data[i]);
+		endl=fgetc(input);
+		printf("%s\n",user_struct->_data[i]);
 	}
-
-	return;
 }
 //------------------------------------------------------------------
 int get_sentences_number(FILE *input_file)
@@ -116,8 +121,44 @@ void terminate_all()
 	printf("cannot allocate memory\n");
 	exit(1);
 }
+//------------------------------------------------------------------
+struct Sentences build_new_struct(struct Sentences* user_struct)
+{
+	struct Sentences new_struct;
+	int num_of_strs, *strs_len;
+    int num_strs = 1;
+    strs_len=malloc (1);
+    if(strs_len==NULL)
+    {
+    	terminate_all();
+    }
+    strs_len[0] = END_OF_ARR;
+    //find how many words there is in the sentences:
+    num_of_strs = count_strs_in_struct(user_struct, strs_len, num_strs);
+    //num of the words = num of rows/lines in the new struct:
+    new_struct._num_of_sentences=num_of_strs;
+    new_struct._data=malloc(sizeof(new_struct._num_of_sentences));
+    if(new_struct._data==NULL)
+    {
+    	terminate_all();
+    }
+    copy_strs_new_struct(user_struct, new_struct, strs_len);
+    free(strs_len);
+	return new_struct;
+}
+//------------------------------------------------------------------
+int count_strs_in_struct(struct Sentences* user_struct, int** strs_len,
+		int* num_strs)
+{
 
+}
+//------------------------------------------------------------------
+int count_strs_in_arr(const char* arr, int** strs_len, int* num_strs,
+		int* strs_counter)
+{
 
+}
+//------------------------------------------------------------------
 
 
 
