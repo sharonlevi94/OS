@@ -23,6 +23,7 @@ FILE *open_files(char *);
 int terminate(FILE *);
 void read_data(struct Sentences*,FILE*);
 int get_sentences_number(FILE *);
+void terminate_all();
 /************MAIN*****************/
 int main()
 {
@@ -66,7 +67,8 @@ FILE *open_files(char *opening_mode)
 //------------------------------------------------------------------
 int terminate(FILE *p2file)
 {
-    if (p2file == NULL) {
+    if (p2file == NULL)
+    {
         printf("can't open file\n");
         exit(1);
     }
@@ -75,7 +77,29 @@ int terminate(FILE *p2file)
 //------------------------------------------------------------------
 void read_data(struct Sentences* user_struct,FILE* input)
 {
+	int c;
+	int i;
+	char* line ;
 	user_struct->_num_of_sentences=get_sentences_number(input);
+	c=fgetc(input);
+
+	user_struct->_data = (char*) malloc (sizeof(user_struct->_num_of_sentences));
+
+	if(user_struct->_data==NULL)
+	{
+		terminate_all();
+	}
+
+	for(i=0;i<user_struct->_num_of_sentences ; i++)
+	{
+		user_struct->_data[i] = (char) mallloc (sizeof(LEN_OF_SENTENCE));
+		if(user_struct->_data[i]==NULL)
+		{
+			terminate_all();
+		}
+		fscanf(input,"%s",user_struct->_data[i]);
+
+	}
 
 	return;
 }
@@ -85,6 +109,12 @@ int get_sentences_number(FILE *input_file)
     int sentences_amount;
     fscanf(input_file, "%d", &sentences_amount);
     return sentences_amount;
+}
+//------------------------------------------------------------------
+void terminate_all()
+{
+	printf("cannot allocate memory\n");
+	exit(1);
 }
 
 
