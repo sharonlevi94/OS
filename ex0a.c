@@ -1,17 +1,21 @@
+// ex0a
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 /************CONST*****************/
 #define _GNU_SOURCE
-#define MAX_FILE_NAME_LEN  50
+#define MAX_FILE_NAME_LEN  1000
 #define STUDENT_NAME_LEN  50
 //------------------------------------------------------------------
 int terminate(FILE *p2file);
 FILE *open_files(char *opening_mode);
+void get_student_name(FILE *input_file, char *student_name);
 void print_grades_to_output(FILE *input_file, FILE *output_file);
 void print_student_name(FILE *input_file, FILE *output_file, char *stud_name);
 void print_new_line(FILE *output_file);
 void close_files(FILE *input_file_1, FILE *input_file_2, FILE *output);
+void run_on_both_files(FILE *input_file_1, FILE *input_file_2, FILE *output, char *stud_name1, char *stud_name2);
+void run_on_one_file(FILE *input_file, FILE *output, char *stud_name);
 //------------------------------------------------------------------
 int main(){
     // input files read
@@ -19,42 +23,17 @@ int main(){
     FILE *file_two = open_files("r");
     //output file read
     FILE *output = open_files("w");
-    //------------------------------------------------------------------
-    // reads students names from files
-    char stud_name1[STUDENT_NAME_LEN ];
-    char stud_name2[STUDENT_NAME_LEN ];
-    //enter student names from each file:
-    fscanf(file_one, "%s", stud_name1);
-    fscanf(file_two, "%s", stud_name2);
-    //------------------------------------------------------------------
-    //int *grade = NULL;
-    // runs untill one file is NULL(EOF)
-    while ((file_one != NULL && file_two != NULL) && (!feof(file_one) && !feof(file_two))){
-        // compares names between two files. if 1st name comes first in alphabetical order- goes into 'if'.
-        if (strcmp(stud_name1, stud_name2) < 0){
-            //we have to send the name to the output file - in this case the name from the first file.
-            print_student_name(file_one, output, stud_name1);
-        } else{
-            
-            if (strcmp(stud_name1, stud_name2) > 0){     // if the second name is first in alphabetical order- goes into 'else if'.
-                print_student_name(file_two, output, stud_name2);
-            } else{                                             // if both names are the same- will go in 'else'
-                print_student_name(file_one, output, stud_name1);
-                print_grades_to_output(file_two, output);       // to make one line with the student name.
-                fscanf(file_two, "%s", stud_name2);             // for both files- because they held the same name.
-            }
-        }
-        print_new_line(output);
+    char stud_name1[STUDENT_NAME_LEN];
+    char stud_name2[STUDENT_NAME_LEN];
+    // while both files holds data
+    run_on_both_files(file_one, file_two, output, stud_name1, stud_name2);
+    // if the second file is empty
+    if (!feof(file_one)) {
+        run_on_one_file(file_one, output, stud_name1);
     }
-    while (!feof(file_one)) {
-        print_student_name(file_one, output, stud_name1);
-        print_new_line(output);
-    }
-    
-    while (!feof(file_two))
-    {
-        print_student_name(file_two, output, stud_name2);
-        print_new_line(output);
+    // if the first file is empty
+    if (!feof(file_two)) {
+        run_on_one_file(file_two, output, stud_name2);
     }
     close_files(file_one, file_two, output);
     return 0;
@@ -85,7 +64,7 @@ FILE *open_files(char *opening_mode){
 void print_grades_to_output(FILE *input_file, FILE *output_file) {
     char rest_of_line_grades;
     fscanf(input_file, "%c", &rest_of_line_grades);        // inserts a grade to 'grade'.
-    while (rest_of_line_grades != '\n' && rest_of_line_grades != '\r') {
+    while (rest_of_line_grades != '\n' && rest_of_line_grades != '\r' && rest_of_line_grades != '\0') {
         fprintf(output_file, "%c", rest_of_line_grades);    // prints 'grade' into output file.
         printf("%c", rest_of_line_grades);                       // prints 'grade' to consule.
         fscanf(input_file, "%c", &rest_of_line_grades);        // inserts a grade to 'grade'.
@@ -109,3 +88,40 @@ void close_files(FILE *input_file_1, FILE *input_file_2, FILE *output) {
     fclose(input_file_2);
     fclose(output);
 }
+//------------------------------------------------------------------
+void get_student_name(FILE *input_file, char *student_name){
+    fscanf(input_file, "%s", student_name);
+}
+//------------------------------------------------------------------
+void run_on_both_files(FILE *input_file_1, FILE *input_file_2, FILE *output, char *stud_name1, char *stud_name2){
+    
+    //enter student names from each file:
+    get_student_name(input_file_1, stud_name1);
+    get_student_name(input_file_2, stud_name2);
+    // runs untill one file is NULL(EOF)
+    while ((input_file_1 != NULL && input_file_2 != NULL) && (!feof(input_file_1) && !feof(input_file_2))){
+        // compares names between two files. if 1st name comes first in alphabetical order- goes into 'if'.
+        if (strcmp(stud_name1, stud_name2) < 0){
+            //we have to send the name to the output file - in this case the name from the first file.
+            print_student_name(input_file_1, output, stud_name1);
+        } else{
+            
+            if (strcmp(stud_name1, stud_name2) > 0){     // if the second name is first in alphabetical order- goes into 'else if'.
+                print_student_name(input_file_2, output, stud_name2);
+            } else{                                             // if both names are the same- will go in 'else'
+                print_student_name(input_file_1, output, stud_name1);
+                print_grades_to_output(input_file_2, output);       // to make one line with the student name.
+                fscanf(input_file_2, "%s", stud_name2);             // for both files- because they held the same name.
+            }
+        }
+        print_new_line(output);
+    }
+}
+//------------------------------------------------------------------
+void run_on_one_file(FILE *input_file, FILE *output, char *stud_name) {
+    while (!feof(input_file)) {
+        print_student_name(input_file, output, stud_name);
+        print_new_line(output);
+    }
+}
+//------------------------------------------------------------------
