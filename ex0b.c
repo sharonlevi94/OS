@@ -1,104 +1,108 @@
+//ex0b
+
+// OS course 2020, first semester.
+// assignement by:
+// Sharon Levi- ID 311593313, login- sharonlevi
+// Bar Ifrah- OD 315566810, login- barif
+// October 29th, 2020
+// This program gets 1 input file from the argument vector.
+// this input file contains a number- that stand for the amount
+// of sentences in the file.
+// this program takes the sentences from the file, and moves them to
+// a struct. after all data is in struct, the program will break the
+// sentences into single words, and re-assign them to a new struct variable,
+// which will be our output struct.
+// after all words has moved to the new struct, we wil lprint the data
+
+// compiled via linux terminal- using the command 'gcc -Wall <filename.c> -o <run_name>
+// no input is reqired from user into terminal in this program.
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
-
-/************CONST*****************/
-#define END_OF_ARR -1
+//CONSTS
+//------------------------------------------------------------------
 #define LEN_OF_SENTENCE 1000
-#define MAX_FILE_NAME_LEN  50
-/************STRUCTS***************/
-struct Sentences
-{
+#define MAX_STR_LEN 100
+//STRUCTS
+//------------------------------------------------------------------
+struct Sentences {
     char** _data;
     int _num_of_sentences;
 };
-/**********PROTOTYPES**************/
-FILE *open_files(char *);
-int terminate(FILE *);
-void read_data(struct Sentences*,FILE*);
+
+//PROTOTYPES
+//------------------------------------------------------------------
+FILE *open_file(int argc, char **argv);
+void read_data(struct Sentences *,FILE *);
 int get_sentences_number(FILE *);
 void terminate_all(void);
 struct Sentences build_new_struct(struct Sentences*);
-int count_strs_in_arr(const char* , int**, int*);
-int count_strs_in_struct(struct Sentences*,int**,int*);
-/*void copy_strs_new_struct(struct Sentences *in_struct ,
-		struct Sentences *out_struct, int *strs_len);*/
-/************MAIN*****************/
-int main()
+int count_strs_in_arr(const char * , int *);
+int count_strs_in_struct(struct Sentences * ,int *);
+size_t get_word_len(char *);
+void copy_string (struct Sentences * ,int , char *);
+void allocate_mem_for_struct(struct Sentences * , int, size_t);
+void copy_strs_new_struct(struct Sentences * ,struct Sentences * , int *);
+char *get_string_from_old_struct(char * , char * , int *);
+void print_data_in_struct(struct Sentences *);
+void check_allocation(int *);
+void string_elegible_to_move_into_output(struct Sentences *, int *, size_t , char *);
+void free_memory(struct Sentences *);
+//MAIN
+//------------------------------------------------------------------
+int main(int argc, char **argv)
 {
     FILE *input_file;
-    input_file = open_files("r");
-    struct Sentences user_struct,out_struct;
-    read_data(&user_struct,input_file);
-    out_struct = build_new_struct(&user_struct);
-    //print_struct(new_struct);
-//------------delete pointers-------------------------------
-    /*user_struct._data[user_struct._num_of_sentences] = NULL;
-    int i;
-    for (i = 0; i < user_struct._num_of_sentences; i++)
-        free(user_struct._data[i]);
-    free(user_struct._data);
-    for (i = 0; i < new_struct._num_of_sentences; i++)
-        free(new_struct._data[i]);
-    free(new_struct._data);*/
-free(input_file);
+    input_file = open_file(argc, argv);
+    struct Sentences input_sentences, output_sentences;
+    read_data(&input_sentences,input_file);
+    output_sentences = build_new_struct(&input_sentences);
+    print_data_in_struct(&output_sentences);
+    free_memory(&input_sentences);
+    free_memory(&output_sentences);
+    fclose(input_file);
     return (EXIT_SUCCESS);
 }
-/***********FUNCTIONS************/
+//FUNCTIONS
+//------------------------------------------------------------------
 // this func opens the file, sends back 'pointer' to beggining of file.
-FILE *open_files(char *opening_mode)
-{
-    char *file_name = NULL;
-    unsigned long file_len;
-    size_t filename_len = MAX_FILE_NAME_LEN;  // as size_t to use in 'getline'
-    getline(&file_name, &filename_len, stdin);
-    file_len = strlen(file_name);
-    file_name[file_len - 1] = '\0';  // to remove '\n' from the name we got into 'file_name'
-    FILE *file_to_open = fopen(file_name, opening_mode);
-    terminate(file_to_open);
-    free(file_name);  // to free memory of ptr
-    return file_to_open;
-}
-//------------------------------------------------------------------
-int terminate(FILE *p2file)
-{
-    if (p2file == NULL)
-    {
-        printf("can't open file\n");
-        exit(1);
+FILE *open_file(int argc, char **argv){
+    FILE *input_file;
+    // to check if an argument was passed, if not- will exit.
+    if(argc < 2){
+        printf("No files passed in argument vector\n");
+        exit(0);
     }
-    if(p2file!=NULL)
-    {
-    printf("open file success\n");
-    }
-    return 0;
+    input_file = fopen(argv[1], "r");
+    return input_file;
 }
+
 //------------------------------------------------------------------
-void read_data(struct Sentences* user_struct, FILE* input)
+void read_data(struct Sentences *input_sentences, FILE* input)
 {
-    int endl;
+    
     int i;      // for loop index
-    user_struct->_num_of_sentences = get_sentences_number(input);
-    endl=fgetc(input);
-
-    user_struct->_data = (char**) malloc (sizeof(user_struct->_num_of_sentences));
-
-    if(user_struct->_data == NULL)
+    input_sentences->_num_of_sentences = get_sentences_number(input);
+    fgetc(input);
+    // initiallizing a ** array tp hold all data from the argv[] file
+    input_sentences->_data = (char**) malloc (sizeof(char*)*(input_sentences->_num_of_sentences));
+    if(input_sentences->_data == NULL)
     {
         terminate_all();
     }
-
-    for(i = 0 ; i < user_struct->_num_of_sentences ; i++)
+    for(i = 0 ; i < input_sentences->_num_of_sentences ; i++)
     {
-        user_struct->_data[i] = malloc (sizeof(LEN_OF_SENTENCE));
-        if(user_struct->_data[i]==NULL)
+        input_sentences->_data[i] = (char*)malloc (sizeof(char)*(LEN_OF_SENTENCE));
+        // if memory allocation failed
+        if(input_sentences->_data[i] == NULL)
         {
             terminate_all();
         }
-        fscanf(input,"%[^\n]",user_struct->_data[i]);
-        endl=fgetc(input);
-        printf("%s\n",user_struct->_data[i]);
+        // reads a line from the input file, adds '\n' in the end.
+        fscanf(input,"%[^\n]",input_sentences->_data[i]);
+        fgetc(input);
     }
 }
 //------------------------------------------------------------------
@@ -115,107 +119,150 @@ void terminate_all()
     exit(1);
 }
 //------------------------------------------------------------------
-struct Sentences build_new_struct(struct Sentences* user_struct)
+struct Sentences build_new_struct(struct Sentences* input_sentences)
 {
     struct Sentences new_struct;
-    int num_of_strs, *strs_len_array;
+    int num_of_strs;
     int num_strs = 0;
-    strs_len_array=malloc (1);
-    if(strs_len_array==NULL)
+    //find how many words there is in the sentences:
+    num_of_strs = count_strs_in_struct(input_sentences, &num_strs);
+    //num of the words = num of rows/lines in the new struct:
+    new_struct._num_of_sentences = num_of_strs;
+    new_struct._data = (char**)malloc(sizeof(char)*(new_struct._num_of_sentences));
+    if(new_struct._data==NULL)
     {
         terminate_all();
     }
-    strs_len_array[0] = END_OF_ARR;
-    //find how many words there is in the sentences:
-    num_of_strs = count_strs_in_struct(user_struct, &strs_len_array, &num_strs);
-    //num of the words = num of rows/lines in the new struct:
-
-    new_struct._num_of_sentences=num_of_strs;
-    //--------------------------------------------------------
-    //===for debugging only!!!===delete before production:
-    //printf("%d\n",strs_len_array[0]);
-    printf("%d\n",num_strs);
-    printf("%d\n",new_struct._num_of_sentences);
-    //--------------------------------------------------------
-    new_struct._data=malloc(sizeof(new_struct._num_of_sentences));
-    if(new_struct._data==NULL)
-        terminate_all();
-
-    //copy_strs_new_struct(user_struct, &new_struct, strs_len_array);
-
-    free(strs_len_array);
+    copy_strs_new_struct(input_sentences, &new_struct, &num_of_strs);
     return new_struct;
 }
 //------------------------------------------------------------------
-/*
-void copy_strs_new_struct(struct Sentences in_struct ,
-		struct Sentences *out_struct,
-		int *strs_len_array)
-{
-	int in_row,in_col=0, //in_struct indexes
-	strs_len_i=0, //strs_len array index
-	out_row=0,out_col=0; //out_struct indexes
-
-	//define first row in out_struct:
-	out_struct->_data[out_row] = malloc (strs_len_array[strs_len_i]);
-	if(out_struct->_data[out_row]==NULL) //memory alloc check
-		terminate_all();
-
-	//scan the rows of in_struct:
-	for(in_row =0 ; in_row < in_struct->_num_of_sentences ; in_row++)
-	{
-		//scan one row of in_struct:
-		while (in_struct->_data[in_row][in_col] != '\0')
-		{
-
-		}
-	}
+// this function moves all the data to the new struct, one word in a line.
+void copy_strs_new_struct(struct Sentences *in_struct ,struct Sentences *out_struct, int *num_of_strs) {
+    int out_struct_index = 0;          // out struct data index
+    int letter_in_old_array_index = 0;          // string copy index
+    int old_struct_line_index = 0;          //in struct index
+    size_t word_len_for_struct_allocation = 0;
+    char *moving_string = malloc(sizeof(char)*(MAX_STR_LEN));
+    out_struct->_data = (char**)malloc(sizeof(char*)*(*num_of_strs));  // allocating memory for the pointers array
+    while (in_struct->_data != NULL && out_struct_index < *num_of_strs) {
+        // allocating memory for 'temp' string- holds a value of one word.
+        moving_string = get_string_from_old_struct(in_struct->_data[old_struct_line_index], moving_string, &letter_in_old_array_index);
+        if (strcmp(moving_string,"")) {
+            string_elegible_to_move_into_output(out_struct, &out_struct_index,
+                                                word_len_for_struct_allocation, moving_string);
+        }
+        if (in_struct->_data[old_struct_line_index][letter_in_old_array_index] == '\0') {
+            // move to next line in 'in_struct'
+            old_struct_line_index++;
+            letter_in_old_array_index = 0;       // next line to start at 0 index
+        }
+    }
+    free(moving_string);
 }
-*/
 //------------------------------------------------------------------
 // this func calls 'count_strs_in_arr'
 // this func creats array, with amount of strings in the struct as length
 // every cell containes the lenghof the string inside of it.
-int count_strs_in_struct(struct Sentences* user_struct, int** strs_len_array,
-        int* num_strs)
+int count_strs_in_struct(struct Sentences* input_sentences, int* num_strs)
 {
     int strs_counter = 0, row;
-    for (row = 0; row < user_struct->_num_of_sentences; row++){
+    for (row = 0; row < input_sentences->_num_of_sentences; row++){
         // this adds the amount of strings that return from func.
         // to use in innitializing a new struct later
-        strs_counter += count_strs_in_arr(user_struct->_data[row], strs_len_array, num_strs);
+        strs_counter += count_strs_in_arr(input_sentences->_data[row], num_strs);
     }
     return strs_counter;
 }
 //------------------------------------------------------------------
 // this function counts how many strings (words) are inside the given row.
 
-int count_strs_in_arr(const char* arr, int** strs_len_array, int* num_strs)
+int count_strs_in_arr(const char *arr, int *num_strs)
 {
-    int strs_counter = 0;           // return value- how many strings (words) are in this given array.
+    int strs_counter = 0;           // return value- how namy strings (words) are in this given array.
     int i;                          // for loop index
-    int str_len_counter = 0;        // length of a word in array.
-    for (i = 0; arr[i] != '\0'; i++)
-    {
-    	if (!isspace(arr[i]))
+    int str_len_counter = 0;        // lenght of a word in array.
+    for (i = 0; arr[i] != '\0'; i++) {
+        if (!isspace(arr[i]))
             str_len_counter++;
-
-        if (isspace(arr[i]) || arr[i + 1] == '\0')
-        {
-            if (strs_counter == *(num_strs) - 1)
-            {
-               num_strs++;                 // adds 1 for new allocation
-                strs_len_array= realloc(strs_len_array, sizeof(num_strs));
-
+        if (isspace(arr[i]) || arr[i + 1] == '\0') {
+            if (strs_counter == *(num_strs)) {
+                *num_strs = strs_counter + 1;    // adds 1 for new allocation
             }
-            strs_len_array[*num_strs] = &str_len_counter;           // array in place of (num_str)
-            str_len_counter = 0;                                    // zeros counter to next string
-            strs_counter++;                                         // ++ for amount of strings in this array
+            str_len_counter = 0;                 // zeros counter to next string
+            strs_counter++;                       // ++ for amount of strings in this array
         }
     }
     // will return how many strings are in this array.
     return strs_counter;
-
 }
 //------------------------------------------------------------------
-
+// this funtion copies an entire string into a single word string in the new (output) struct.
+char *get_string_from_old_struct(char *old_struct_line, char *returning_string, int *letter_in_old_array_index) {
+    int letter_in_new_word_index = 0;
+    while (old_struct_line[*letter_in_old_array_index] != '\0') {
+        // while theres still memory allocated for this string-- go in
+        if (!isspace(old_struct_line [*letter_in_old_array_index])){
+            returning_string[letter_in_new_word_index] = old_struct_line[*letter_in_old_array_index];
+            letter_in_new_word_index++;
+            *letter_in_old_array_index += 1;  // not writing '++' due to a debuungig problem
+        } else{
+            *letter_in_old_array_index += 1;  // to moveto next char in the string.
+            break;
+        }
+        // when code gets here, it will end the func. 'break' added for safety reasons.
+    }
+    returning_string[letter_in_new_word_index] = '\0';  // NULL terminated string
+    return returning_string;
+}
+//------------------------------------------------------------------
+// this function moves the data to the new struct line.
+void string_elegible_to_move_into_output(struct Sentences *output_struct, int *out_struct_index,
+                                         size_t string_len, char *string_to_copy) {
+    string_len = get_word_len(string_to_copy);
+    allocate_mem_for_struct(output_struct, *out_struct_index,
+                            string_len);
+    copy_string(output_struct, *out_struct_index, string_to_copy);
+    string_to_copy [string_len] = '\0';
+    *out_struct_index += 1;
+        
+}
+//------------------------------------------------------------------
+// this function checks the length of a string to allocate memory later
+size_t get_word_len(char *word_from_old_struct) {
+    size_t word_len;
+    word_len = strlen(word_from_old_struct) + 1;
+    return word_len;
+}
+//------------------------------------------------------------------
+// this function allocates memory for a new line in the output struct.
+void allocate_mem_for_struct(struct Sentences *output_struct, int index, size_t string_len) {
+    output_struct->_data[index] = malloc(sizeof(char)*(string_len));
+}
+//------------------------------------------------------------------
+// this function copies the string from given string top output struct
+void copy_string (struct Sentences *output_struct, int index, char *string_to_copy){
+    strcpy(output_struct->_data[index], string_to_copy);
+}
+//------------------------------------------------------------------
+// this function checks memory allocation
+void check_allocation(int *array) {
+    if (array == NULL) {
+        exit(EXIT_FAILURE);
+    }
+}
+//------------------------------------------------------------------
+// this function prints the valuen is the required struct
+void print_data_in_struct(struct Sentences *struct_to_print) {
+    for (int i = 0; i < struct_to_print->_num_of_sentences; ++i) {
+        printf("%s\n", struct_to_print->_data[i]);
+    }
+}
+//------------------------------------------------------------------
+void free_memory(struct Sentences *struct_to_print) {
+    int i;
+    for (i = 0; i < struct_to_print->_num_of_sentences; i++) {
+        free(struct_to_print->_data[i]);
+    }
+    free(struct_to_print->_data);
+}
