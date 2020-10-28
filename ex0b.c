@@ -128,7 +128,6 @@ struct Sentences build_new_struct(struct Sentences* input_sentences)
     num_of_strs = count_strs_in_struct(input_sentences, &num_strs);
     //num of the words = num of rows/lines in the new struct:
     new_struct._num_of_sentences = num_of_strs;
-    new_struct._data = (char**)malloc(sizeof(char)*(new_struct._num_of_sentences));
     if(new_struct._data==NULL)
     {
         terminate_all();
@@ -225,7 +224,6 @@ void string_elegible_to_move_into_output(struct Sentences *output_struct, int *o
     copy_string(output_struct, *out_struct_index, string_to_copy);
     string_to_copy [string_len] = '\0';
     *out_struct_index += 1;
-        
 }
 //------------------------------------------------------------------
 // this function checks the length of a string to allocate memory later
@@ -245,16 +243,10 @@ void copy_string (struct Sentences *output_struct, int index, char *string_to_co
     strcpy(output_struct->_data[index], string_to_copy);
 }
 //------------------------------------------------------------------
-// this function checks memory allocation
-void check_allocation(int *array) {
-    if (array == NULL) {
-        exit(EXIT_FAILURE);
-    }
-}
-//------------------------------------------------------------------
 // this function prints the valuen is the required struct
 void print_data_in_struct(struct Sentences *struct_to_print) {
-    for (int i = 0; i < struct_to_print->_num_of_sentences; ++i) {
+    int i;
+    for (i = 0; i < struct_to_print->_num_of_sentences; ++i) {
         printf("%s\n", struct_to_print->_data[i]);
     }
 }
