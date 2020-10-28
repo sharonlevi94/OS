@@ -1,4 +1,18 @@
 // ex0a
+// OS course 2020, first semester.
+// assignement by:
+// Sharon Levi- ID 311593313, login- sharonlevi
+// Bar Ifrah- OD 315566810, login- barif
+// October 29th, 2020
+
+// Get 2 input files and one output file from the user.
+// The input files has name and grade data on students, output file is empty.
+// The program reads the names of the students from the files,
+// and prints them by ABC order to both console and output file.
+// Wanted input from user- 3 names of txt files- i.e "filename.txt"
+
+// compiled via linux terminal- using the command 'gcc -Wall <filename.c> -o <run_name>
+// no input is reqired from user into terminal in this program.
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,15 +21,15 @@
 #define MAX_FILE_NAME_LEN  1000
 #define STUDENT_NAME_LEN  50
 //------------------------------------------------------------------
-int terminate(FILE *p2file);
-FILE *open_files(char *opening_mode);
-void get_student_name(FILE *input_file, char *student_name);
-void print_grades_to_output(FILE *input_file, FILE *output_file);
-void print_student_name(FILE *input_file, FILE *output_file, char *stud_name);
-void print_new_line(FILE *output_file);
-void close_files(FILE *input_file_1, FILE *input_file_2, FILE *output);
-void run_on_both_files(FILE *input_file_1, FILE *input_file_2, FILE *output, char *stud_name1, char *stud_name2);
-void run_on_one_file(FILE *input_file, FILE *output, char *stud_name);
+int terminate(FILE *);
+FILE *open_files(char *);
+void get_student_name(FILE *, char *);
+void print_grades_to_output(FILE *, FILE *);
+void print_student_name(FILE *, FILE *, char *);
+void print_new_line(FILE *);
+void close_file(FILE *);
+void run_on_both_files(FILE *, FILE *, FILE *, char *, char *);
+void run_on_one_file(FILE *, FILE *, char *);
 //------------------------------------------------------------------
 int main(){
     // input files read
@@ -35,7 +49,9 @@ int main(){
     if (!feof(file_two)) {
         run_on_one_file(file_two, output, stud_name2);
     }
-    close_files(file_one, file_two, output);
+    close_file(file_one);
+    close_file(file_two);
+    close_file(output);
     return 0;
 }
 
@@ -83,10 +99,8 @@ void print_new_line(FILE *output_file) {
     printf("\n");
 }
 //------------------------------------------------------------------
-void close_files(FILE *input_file_1, FILE *input_file_2, FILE *output) {
-    fclose(input_file_1);
-    fclose(input_file_2);
-    fclose(output);
+void close_file(FILE *file_to_close) {
+    fclose(file_to_close);
 }
 //------------------------------------------------------------------
 void get_student_name(FILE *input_file, char *student_name){
