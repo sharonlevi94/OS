@@ -15,13 +15,13 @@ void do_dad(int num,pid_t status);
 void do_son(int num);
 void terminate ();
 void catch_sigusr1(int sig_num);
-void catch_alarm(int sig_num);
+
 //-------------------------
 int main () {
 	signal(SIGUSR1,catch_sigusr1);
-	signal(SIGALRM,catch_alarm);
+
 	srand(17);
-	int num;
+	int num=0;
 	pid_t status;
 	status=fork();
 
@@ -51,9 +51,10 @@ void do_dad (int num,pid_t son_pid){
 		}
 		else {
 		kill(son_pid,SIGUSR1); //send signal to son
-		}
 		alarm(5); //wait 5 sec to signal
-		printf("process %d has a partner\n");
+				printf("process %d has a partner\n",getpid());
+		}
+
 	}
 }
 //--------------------------------------
@@ -66,17 +67,14 @@ void do_son (int num){
 		}
 		else {
 			kill(getppid(),SIGUSR1); //send signal to dad
+			alarm(5); //wait 5 sec to signal
+					printf("process %d has a partner\n",getpid());
 		}
-		alarm(5); //wait 5 sec to signal
-		printf("process %d has a partner\n");
 	}
 }
 //--------------------------------------
 void catch_sigusr1(int sig_num){
-	signal(SIGUSR1,catch_sigusr1);
+	printf("process %d was left alone, and quits\n", getpid());
+		exit (EXIT_SUCCESS);
 }
 //--------------------------------------
-void catch_alarm(int sig_num) {
-	printf("process %d was left alone, and quits\n", getpid());
-	exit (EXIT_SUCCESS);
-}
