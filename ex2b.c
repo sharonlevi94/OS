@@ -9,19 +9,19 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
-
+#include <time.h>
 //-----------------------
-void do_dad(int num,pid_t status);
-void do_son(int num);
+void do_dad(pid_t status);
+void do_son();
 void terminate ();
 void catch_sigusr1(int sig_num);
-
-//-------------------------
+void catch_alarm(int sig_num);
+;//-------------------------
 int main () {
 	signal(SIGUSR1,catch_sigusr1);
-
+signal(SIGALRM,catch_alarm);
 	srand(17);
-	int num=0;
+
 	pid_t status;
 	status=fork();
 
@@ -29,9 +29,9 @@ int main () {
 		terminate();
 
 	if(status>0)
-		do_dad(num,status);
+		do_dad(status);
 	else
-		do_son(num);
+		do_son();
 
 	return EXIT_SUCCESS;
 }
@@ -42,9 +42,11 @@ void terminate(){
 			exit(EXIT_FAILURE);
 }
 //--------------------------------------
-void do_dad (int num,pid_t son_pid){
-	while(1) {
-		num = rand()%10;
+void do_dad (pid_t son_pid) {
+	int num;
+	while(1)
+	{
+		num=rand()%10;
 		if(num<3) {
 			printf ("proccess %d ends\n",getpid());
 			exit(EXIT_SUCCESS);
@@ -52,15 +54,20 @@ void do_dad (int num,pid_t son_pid){
 		else {
 		kill(son_pid,SIGUSR1); //send signal to son
 		alarm(5); //wait 5 sec to signal
-				printf("process %d has a partner\n",getpid());
-		}
+		pause();
 
+		alarm(0);
+
+		}
 	}
 }
 //--------------------------------------
-void do_son (int num){
-	while(1) {
+void do_son () {
+	int num;
+	while(1)
+	{
 		num = rand()%10;
+
 		if(num<3) {
 			printf ("proccess %d ends\n",getpid());
 			exit(EXIT_SUCCESS);
@@ -68,13 +75,19 @@ void do_son (int num){
 		else {
 			kill(getppid(),SIGUSR1); //send signal to dad
 			alarm(5); //wait 5 sec to signal
-					printf("process %d has a partner\n",getpid());
+			pause();
+			alarm(0);
+
 		}
 	}
 }
 //--------------------------------------
 void catch_sigusr1(int sig_num){
+	signal(SIGUSR1,catch_sigusr1);
+	printf("process %d has a partner\n",getpid());
+}
+//--------------------------------------
+void catch_alarm(int sig_num) {
 	printf("process %d was left alone, and quits\n", getpid());
 		exit (EXIT_SUCCESS);
 }
-//--------------------------------------
