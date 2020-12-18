@@ -1,6 +1,6 @@
 //  OS- semester A- class B2
-//  ID 315566810    login:- barif
-//  ID 311593313    login:- sharonlevi
+//     login:- barif
+//     login:- sharonlevi
 // ex0
 //Date - October 2020
 //**********************************************************************************
