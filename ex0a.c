@@ -1,8 +1,8 @@
 // ex0a
 // OS course 2020, first semester.
 // assignement by:
-// Sharon Levi- ID 311593313, login- sharonlevi
-// Bar Ifrah- OD 315566810, login- barif
+// Sharon Levi-  login- sharonlevi
+// Bar Ifrah-  login- barif
 // October 29th, 2020
 
 // Get 2 input files and one output file from the user.
